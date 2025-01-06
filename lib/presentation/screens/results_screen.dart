@@ -33,90 +33,106 @@ class ResultsScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+        children: [
+          // BMI Card
+          Card(
+            margin: const EdgeInsets.only(bottom: 24.0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: IntrinsicHeight(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Индекс массы тела (BMI)',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Индекс массы тела (BMI)',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${bmiResult.bmiValue} - ${bmiResult.descriptionText}',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${bmiResult.bmiValue} - ${bmiResult.descriptionText}',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                    const SizedBox(width: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        bmiResult.getImagePath(patient.gender),
+                        height: 120,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Рекомендации по результатам опроса:',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: declinedQuestions.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Отлично! Вы ответили "Да" на все вопросы.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: declinedQuestions.length,
-                      itemBuilder: (context, index) {
-                        final question = declinedQuestions[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  question.name,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  question.question,
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Возможные проблемы:',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  question.description,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+          ),
+
+          // Results Title
+          Text(
+            'Рекомендации по результатам опроса:',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+
+          // Results Content
+          if (declinedQuestions.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Отлично! Вы ответили "Да" на все вопросы.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            )
+          else
+            ...declinedQuestions.map((question) => Card(
+                  margin: const EdgeInsets.only(bottom: 12.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          question.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          question.question,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Возможные проблемы:',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          question.description,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
                     ),
-            ),
-          ],
-        ),
+                  ),
+                )).toList(),
+        ],
       ),
     );
   }

@@ -18,6 +18,19 @@ class BMIResult {
     required this.descriptionText,
   });
 
+  String getImagePath(int gender) {
+    final prefix = gender == 1 ? 'man' : 'woman';
+    final suffix = switch (description) {
+      BMIDescription.deficit => 'underweight',
+      BMIDescription.normal => 'normal',
+      BMIDescription.predObesity => 'overweight',
+      BMIDescription.obesity1 => 'obese1',
+      BMIDescription.obesity2 => 'obese2',
+      BMIDescription.obesity3 => 'obese3',
+    };
+    return 'assets/png/${prefix}_$suffix.png';
+  }
+
   static BMIResult calculate(double bmi) {
     BMIDescription desc;
     String text;
