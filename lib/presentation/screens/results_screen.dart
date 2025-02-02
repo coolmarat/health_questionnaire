@@ -89,7 +89,7 @@ class ResultsScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
-                  'Отлично! Вы ответили "Да" на все вопросы.',
+                  'Вы прошли все необходимые исследования.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 18),
                 ),
