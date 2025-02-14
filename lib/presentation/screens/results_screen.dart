@@ -1,9 +1,29 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/question.dart';
-import '../../domain/models/patient_model.dart';
-import '../../domain/models/bmi_result.dart';
+import 'dart:convert';
 
-class ResultsScreen extends StatelessWidget {
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../domain/entities/question.dart';
+import '../../domain/models/bmi_result.dart';
+import '../../domain/models/patient_model.dart';
+
+class Hospital {
+  final String name;
+  final List<String> phones;
+
+  Hospital({required this.name, required this.phones});
+
+  factory Hospital.fromJson(Map<String, dynamic> json) {
+    return Hospital(
+      name: json['name'],
+      phones: List<String>.from(json['phones']),
+    );
+  }
+}
+
+class ResultsScreen extends StatefulWidget {
   final List<Question> questions;
   final Map<String, bool> answers;
   final PatientModel patient;
@@ -16,12 +36,120 @@ class ResultsScreen extends StatelessWidget {
   });
 
   @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+  List<Hospital> hospitals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadHospitals();
+  }
+
+  Future<void> loadHospitals() async {
+    try {
+      final String jsonString =
+          await DefaultAssetBundle.of(context).loadString('assets/phones.json');
+      final List<dynamic> jsonList = json.decode(jsonString);
+      setState(() {
+        hospitals = jsonList.map((json) => Hospital.fromJson(json)).toList();
+      });
+    } catch (e) {
+      debugPrint('Error loading hospitals: $e');
+    }
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    // Remove any non-digit characters from the phone number
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Different handling for web platform
+    if (kIsWeb) {
+      final webUri = Uri.parse('tel:$cleanNumber');
+      try {
+        final canLaunch = await canLaunchUrl(webUri);
+        if (!canLaunch) {
+          // Если звонок не поддерживается, копируем номер в буфер обмена
+          await _copyToClipboard(cleanNumber);
+          return;
+        }
+        await launchUrl(webUri, webOnlyWindowName: '_self');
+      } catch (e) {
+        // В случае ошибки тоже копируем номер
+        await _copyToClipboard(cleanNumber);
+      }
+      return;
+    }
+
+    // Mobile platform handling
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: cleanNumber,
+    );
+
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        // Если звонок не поддерживается на мобильном устройстве, тоже копируем номер
+        await _copyToClipboard(cleanNumber);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Не удалось совершить звонок: ${e.toString()}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _copyToClipboard(String phoneNumber) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: phoneNumber));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Номер $phoneNumber скопирован в буфер обмена',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Не удалось скопировать номер телефона'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final declinedQuestions = questions
-        .where((question) => answers[question.id] != true)
+    final declinedQuestions = widget.questions
+        .where((question) => widget.answers[question.id] != true)
         .toList();
-    
-    final bmiResult = BMIResult.calculate(patient.getBMI());
+
+    final bmiResult = BMIResult.calculate(widget.patient.getBMI());
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +193,7 @@ class ResultsScreen extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.asset(
-                        bmiResult.getImagePath(patient.gender),
+                        bmiResult.getImagePath(widget.patient.gender),
                         height: 120,
                         fit: BoxFit.contain,
                       ),
@@ -131,7 +259,68 @@ class ResultsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                )).toList(),
+                )),
+
+          const SizedBox(height: 24),
+
+          // Hospitals Section
+          Text(
+            'Контакты больниц:',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+
+          ...hospitals.map((hospital) => Card(
+                margin: const EdgeInsets.only(bottom: 12.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        hospital.name,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...hospital.phones.map((phone) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: InkWell(
+                              onTap: () => _makePhoneCall(phone),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 4.0,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.phone,
+                                      size: 24,
+                                      color: Colors.blue,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      phone,
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                        fontSize: 18,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              )),
         ],
       ),
     );
