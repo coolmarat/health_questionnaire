@@ -19,6 +19,10 @@ class _UserInputScreenState extends State<UserInputScreen> {
   String? _heightError;
   String? _weightError;
 
+  final FocusNode _ageFocusNode = FocusNode();
+  final FocusNode _heightFocusNode = FocusNode();
+  final FocusNode _weightFocusNode = FocusNode();
+
   void _validateAge(String value) {
     setState(() {
       if (value.isEmpty) {
@@ -130,6 +134,9 @@ class _UserInputScreenState extends State<UserInputScreen> {
             TextField(
               controller: _ageController,
               keyboardType: TextInputType.number,
+              focusNode: _ageFocusNode,
+              textInputAction: TextInputAction.next,
+              onEditingComplete: () => _heightFocusNode.requestFocus(),
               decoration: InputDecoration(
                 labelText: 'Возраст',
                 border: const OutlineInputBorder(),
@@ -142,6 +149,9 @@ class _UserInputScreenState extends State<UserInputScreen> {
             TextField(
               controller: _heightController,
               keyboardType: TextInputType.number,
+              focusNode: _heightFocusNode,
+              textInputAction: TextInputAction.next,
+              onEditingComplete: () => _weightFocusNode.requestFocus(),
               decoration: InputDecoration(
                 labelText: 'Рост (см)',
                 border: const OutlineInputBorder(),
@@ -154,6 +164,8 @@ class _UserInputScreenState extends State<UserInputScreen> {
             TextField(
               controller: _weightController,
               keyboardType: TextInputType.number,
+              focusNode: _weightFocusNode,
+              textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 labelText: 'Вес (кг)',
                 border: const OutlineInputBorder(),
@@ -206,6 +218,9 @@ class _UserInputScreenState extends State<UserInputScreen> {
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _ageFocusNode.dispose();
+    _heightFocusNode.dispose();
+    _weightFocusNode.dispose();
     super.dispose();
   }
 }
