@@ -14,12 +14,82 @@ class _UserInputScreenState extends State<UserInputScreen> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   int? _gender;
+  
+  String? _ageError;
+  String? _heightError;
+  String? _weightError;
+
+  void _validateAge(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _ageError = null;
+      } else {
+        try {
+          final age = int.parse(value);
+          if (age < 18) {
+            _ageError = 'Возраст должен быть не менее 18 лет';
+          } else if (age > 99) {
+            _ageError = 'Возраст должен быть не более 99 лет';
+          } else {
+            _ageError = null;
+          }
+        } catch (e) {
+          _ageError = 'Введите корректное число';
+        }
+      }
+    });
+  }
+
+  void _validateWeight(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _weightError = null;
+      } else {
+        try {
+          final weight = int.parse(value);
+          if (weight < 20) {
+            _weightError = 'Вес должен быть не менее 20 кг';
+          } else if (weight > 300) {
+            _weightError = 'Вес должен быть не более 300 кг';
+          } else {
+            _weightError = null;
+          }
+        } catch (e) {
+          _weightError = 'Введите корректное число';
+        }
+      }
+    });
+  }
+
+  void _validateHeight(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _heightError = null;
+      } else {
+        try {
+          final height = int.parse(value);
+          if (height < 100) {
+            _heightError = 'Рост должен быть не менее 100 см';
+          } else if (height > 250) {
+            _heightError = 'Рост должен быть не более 250 см';
+          } else {
+            _heightError = null;
+          }
+        } catch (e) {
+          _heightError = 'Введите корректное число';
+        }
+      }
+    });
+  }
 
   bool get _isFormValid {
     return _ageController.text.isNotEmpty &&
         _heightController.text.isNotEmpty &&
         _weightController.text.isNotEmpty &&
-        _gender != null;
+        _gender != null &&
+        _ageError == null &&
+        _heightError == null &&
+        _weightError == null;
   }
 
   void _startQuestionnaire() {
@@ -60,28 +130,37 @@ class _UserInputScreenState extends State<UserInputScreen> {
             TextField(
               controller: _ageController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Возраст',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                errorText: _ageError,
+                errorStyle: const TextStyle(color: Colors.red),
               ),
+              onChanged: _validateAge,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _heightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Рост (см)',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                errorText: _heightError,
+                errorStyle: const TextStyle(color: Colors.red),
               ),
+              onChanged: _validateHeight,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _weightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Вес (кг)',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                errorText: _weightError,
+                errorStyle: const TextStyle(color: Colors.red),
               ),
+              onChanged: _validateWeight,
             ),
             const SizedBox(height: 20),
             const Text('Пол:', style: TextStyle(fontSize: 16)),
