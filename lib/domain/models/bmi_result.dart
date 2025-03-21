@@ -35,34 +35,62 @@ class BMIResult {
     return 'assets/png/${prefix}_$suffix.png';
   }
 
-  static BMIResult calculate(double bmi) {
+  static BMIResult calculate(double bmi, {required int age}) {
     BMIDescription desc;
     String text;
 
-    if (bmi < 17.5) {
-      desc = BMIDescription.anorexia;
-      text = 'Анорексия';
-    } else if (bmi < 18.5) {
-      desc = BMIDescription.deficit;
-      text = 'Недостаток массы';
-    } else if (bmi < 23) {
-      desc = BMIDescription.normal;
-      text = 'Норма';
-    } else if (bmi < 27.5) {
-      desc = BMIDescription.overweight;
-      text = 'Избыточная масса тела';
-    } else if (bmi < 30) {
-      desc = BMIDescription.obesity1;
-      text = 'Ожирение I степени';
-    } else if (bmi < 35) {
-      desc = BMIDescription.obesity2;
-      text = 'Ожирение II степени';
-    } else if (bmi < 40) {
-      desc = BMIDescription.obesity3;
-      text = 'Ожирение III степени';
+    if (age <= 25) {
+      if (bmi < 17.5) {
+        desc = BMIDescription.anorexia;
+        text = 'Анорексия';
+      } else if (bmi < 18.5) {
+        desc = BMIDescription.deficit;
+        text = 'Недостаток массы';
+      } else if (bmi < 23) {
+        desc = BMIDescription.normal;
+        text = 'Норма';
+      } else if (bmi < 27.5) {
+        desc = BMIDescription.overweight;
+        text = 'Избыточная масса тела';
+      } else if (bmi < 30) {
+        desc = BMIDescription.obesity1;
+        text = 'Ожирение I степени';
+      } else if (bmi < 35) {
+        desc = BMIDescription.obesity2;
+        text = 'Ожирение II степени';
+      } else if (bmi < 40) {
+        desc = BMIDescription.obesity3;
+        text = 'Ожирение III степени';
+      } else {
+        desc = BMIDescription.obesity4;
+        text = 'Ожирение IV степени';
+      }
     } else {
-      desc = BMIDescription.obesity4;
-      text = 'Ожирение IV степени';
+      if (bmi <= 17.5) {
+        desc = BMIDescription.anorexia;
+        text = 'Анорексия';
+      } else if (bmi < 20) {
+        desc = BMIDescription.deficit;
+        text = 'Недостаток массы';
+      } else if (bmi < 26) {
+        desc = BMIDescription.normal;
+        text = 'Норма';
+      } else if (bmi < 28) {
+        desc = BMIDescription.overweight;
+        text = 'Избыточная масса тела';
+      } else if (bmi < 31) {
+        desc = BMIDescription.obesity1;
+        text = 'Ожирение I степени';
+      } else if (bmi < 36) {
+        desc = BMIDescription.obesity2;
+        text = 'Ожирение II степени';
+      } else if (bmi < 41) {
+        desc = BMIDescription.obesity3;
+        text = 'Ожирение III степени';
+      } else {
+        desc = BMIDescription.obesity4;
+        text = 'Ожирение IV степени';
+      }
     }
 
     return BMIResult(

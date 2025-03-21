@@ -149,7 +149,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
         .where((question) => widget.answers[question.id] != true)
         .toList();
 
-    final bmiResult = BMIResult.calculate(widget.patient.getBMI());
+    final bmiResult = BMIResult.calculate(
+      widget.patient.getBMI(),
+      age: widget.patient.age,
+    );
 
     return Scaffold(
       appBar: AppBar(
